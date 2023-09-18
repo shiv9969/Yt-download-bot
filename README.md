@@ -1,16 +1,19 @@
-# Scrypte
+# Social-Media-Downloader
 
-Telegram bot to download media from Instagram, Youtube and Spotify
+Telegram bot to download media from Youtube, Spotify, Tiktok, Twitter, Instagram and Pinterest
 
 ## It took me a lot of time to make this bot, so please give it a star if you like it.
 
-Bot link: [Scrypte](https://t.me/scrypte_bot)
+Bot link: [Social-Media-Downloader](https://t.me/Social_Media_Downloaderr_Bot)
 
 ## Features
 
--   Download posts, stories and reels from Instagram
--   Download videos from Youtube
--   Download tracks, albums and even playlists from Spotify
+-   Download videos or audio from Youtube
+-   Download song from Spotify
+-   Download videos, music or audio from Tiktok
+-   Download videos or audio from Twitter
+-   Download videos, reels, photos, stories or IGTV from Instagram
+-   Download videos from Pinterest
 
 ## How to use
 

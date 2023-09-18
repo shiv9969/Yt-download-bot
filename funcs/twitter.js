@@ -22,7 +22,7 @@ function twitter(link){
 				thumb: $('div:nth-child(1) > img').attr('src'),
 				HD: $('tbody > tr:nth-child(1) > td:nth-child(4) > a').attr('href'),
 				SD: $('tr:nth-child(2) > td:nth-child(4) > a').attr('href'),
-				audio: $('body > div.jumbotron > div > center > div.row > div > div:nth-child(5) > table > tbody > tr:nth-child(3) > td:nth-child(4) > a').attr('href')
+				audio: 'https://twdown.net/' + $('body > div.jumbotron > div > center > div.row > div > div:nth-child(5) > table > tbody > tr:nth-child(3) > td:nth-child(4) > a').attr('href')
 			})
 		})
 	.catch(reject)

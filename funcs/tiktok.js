@@ -79,12 +79,13 @@ function tiktokdl(URL) {
           }
         }).then(resaudio => {
           const hc = cheerio.load(resaudio.data)
-          if (ch('.card-image')) {
+          if (ch('.card-image')[0]) {
             let result = [];
             ch('.card-image').each((i, mil) => {
               let urlimg = ch(mil).find('img').attr('src');
               result.push({ image: urlimg })
             })
+            console.log(result)
             resolve(result)
           } else if (ch('body > div.welcome.section > div > div > div.col.s12.l4 > audio > source').attr('src')) {
             const result = {
@@ -174,6 +175,7 @@ async function tiktokVideo(bot, chatId, url) {
   load = await bot.sendMessage(chatId, 'Downloading video...');
   try {
     let get = await tiktokdl('https://www.tiktok.com/@' + url);
+    console.log(get)
     let fname = `tiktok_video_${get.username}-${chatId}.mp4`;
     let getbuff = await getBuffer(get.video);
     await fs.writeFileSync(`content/${fname}`, getbuff);
@@ -182,7 +184,7 @@ async function tiktokVideo(bot, chatId, url) {
     await fs.unlinkSync('content/'+fname)
   } catch (err) {
     await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
-    return bot.sendMessage('An error occurred!')
+    return bot.sendMessage(chatId, 'An error occurred!')
   }
 }
 
@@ -198,7 +200,7 @@ async function tiktokAudio(bot, chatId, url) {
     await fs.unlinkSync('content/'+fname)
   } catch (err) {
     await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
-    return bot.sendMessage('An error occurred!')
+    return bot.sendMessage(chatId, 'An error occurred!')
   }
 }
 
@@ -215,7 +217,7 @@ async function tiktokSound(bot, chatId, url) {
     await fs.unlinkSync('content/'+fname)
   } catch (err) {
     await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
-    return bot.sendMessage('An error occurred!')
+    return bot.sendMessage(chatId, 'An error occurred!')
   }
 }
 

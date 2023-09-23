@@ -1,6 +1,6 @@
 # Social-Media-Downloader
 
-Telegram bot to download media from Youtube, Spotify, Tiktok, Twitter, Instagram and Pinterest
+Telegram bot to download media from Youtube, Spotify, Tiktok, Twitter, Instagram, Facebook and Pinterest
 
 ## It took me a lot of time to make this bot, so please give it a star if you like it.
 
@@ -13,6 +13,7 @@ Bot link: [Social-Media-Downloader](https://t.me/Social_Media_Downloaderr_Bot)
 -   Download videos, music or audio from Tiktok
 -   Download videos or audio from Twitter
 -   Download videos, reels, photos, stories or IGTV from Instagram
+-   Download videos or audio from Facebook
 -   Download videos from Pinterest
 
 ## How to use

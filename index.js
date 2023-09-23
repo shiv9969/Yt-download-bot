@@ -34,13 +34,24 @@ let {
   getYoutubeVideo
 } = require('./funcs/youtube')
 let {
+  getFacebook,
+  getFacebookNormal,
+  getFacebookHD,
+  getFacebookAudio
+} = require('./funcs/facebook')
+let {
   getNetworkUploadSpeed,
   getNetworkDownloadSpeed,
 } = require('./funcs/dev')
+let {
+  readDb,
+  writeDb,
+  addUserDb,
+  changeBoolDb
+} = require('./funcs/database')
 let userLocks = {};
 let token = process.env.TOKEN
 let bot = new TelegramBot(token, { polling: true })
-
 // Bot Settings
 let botName = 'Social Media Dowloader Bot';
 app.get('/', async (req, res) => {
@@ -54,10 +65,17 @@ console.log('Bot is running...')
 
 // start
 bot.onText(/\/start/, async (msg) => {
-  //console.log(msg);
+  let db = await readDb('./database.json');
   let chatId = msg.chat.id;
-  let response = `Hello I am ${botName}, Please send the Instagram, YouTube, TikTok, Twitter, or Pinterest links that you want to download!`
-  await bot.sendMessage(chatId, response);
+  if (!db[chatId]) {
+    await addUserDb(chatId, './database.json');
+    let response = `Hello I am ${botName},You only need to send the video / audio link then the bot will process it, This bot only supports downloading the following link!\n\n• Youtube\n• Tiktok\n• Instagram\n• Twitter\n• Facebook\n• Pinterest\n• Spotify\n\nBot by @Krxuvv`
+    await bot.sendMessage(chatId, response);
+    db = await readDb('./database.json');
+  } else if (db[chatId]) {
+    let response = `Hello I am ${botName},You only need to send the video / audio link then the bot will process it, This bot only supports downloading the following link!\n\n• Youtube\n• Tiktok\n• Instagram\n• Twitter\n• Facebook\n• Pinterest\n• Spotify\n\nBot by @Krxuvv`
+    await bot.sendMessage(chatId, response);
+  }
 })
 
 // !dev commands
@@ -208,6 +226,21 @@ bot.onText(/^(?:https?:\/\/)?(?:www\.|m\.|music\.)?youtu\.?be(?:\.com)?\/?.*(?:w
   }
 })
 
+// Facebook Regex
+bot.onText(/^https?:\/\/(www\.)?(m\.)?facebook\.com\/.+/, async (msg, match) => {
+	let chatId = msg.chat.id;
+  let url = match[0];
+	let userId = msg.from.id.toString();
+  if (userLocks[userId]) {
+    return;
+  }
+  userLocks[userId] = true;
+  try {
+		await getFacebook(bot, chatId, url)
+	} finally {
+    userLocks[userId] = false;
+  }
+})
 
 bot.on('callback_query', async (mil) => {
   let data = mil.data;
@@ -235,6 +268,15 @@ bot.on('callback_query', async (mil) => {
   } else if (data.startsWith('spt')) {
     await bot.deleteMessage(chatid, msgid);
     await getSpotifySong(bot, chatid, url);
+  } else if (data.startsWith('fbn')) {
+    await bot.deleteMessage(chatid, msgid);
+    await getFacebookNormal(bot, chatid);
+  } else if (data.startsWith('fbh')) {
+    await bot.deleteMessage(chatid, msgid);
+    await getFacebookHD(bot, chatid);
+  } else if (data.startsWith('fba')) {
+    await bot.deleteMessage(chatid, msgid);
+    await getFacebookAudio(bot, chatid);
   } else if (data.startsWith('ytv')) {
     let args = url.split(' ');
     await bot.deleteMessage(chatid, msgid);

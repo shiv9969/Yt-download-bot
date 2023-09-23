@@ -39,7 +39,7 @@ async function ttembed(inputurl) {
       return results;
     }
   } catch (err) {
-    console.log(err);
+    return { type: 'image' }
   }
 }
 
@@ -79,7 +79,14 @@ function tiktokdl(URL) {
           }
         }).then(resaudio => {
           const hc = cheerio.load(resaudio.data)
-          if (ch('body > div.welcome.section > div > div > div.col.s12.l4 > audio > source').attr('src')) {
+          if (ch('.card-image')) {
+            let result = [];
+            ch('.card-image').each((i, mil) => {
+              let urlimg = ch(mil).find('img').attr('src');
+              result.push({ image: urlimg })
+            })
+            resolve(result)
+          } else if (ch('body > div.welcome.section > div > div > div.col.s12.l4 > audio > source').attr('src')) {
             const result = {
               type: 'music',
               title: ch('body > div.welcome.section > div.container > div > div.col.s12.l8 > h2.white-text').text().replace('Music Title: ', ''),
@@ -121,6 +128,25 @@ async function getTiktokInfo(bot, chatId, url) {
       await bot.sendAudio(chatId, `content/${title}-${chatId}.mp3`, { caption: 'Downloaded audio: ' + title + ' by @Krxuvv', filename: `${title}-${chatId}.mp3`, contentType: 'audio/mp3' })
       await bot.deleteMessage(chatId, load2.message_id);
       await fs.unlinkSync(`content/${title}-${chatId}.mp3`)
+    } else if (getinfo.type === 'image') {
+      let getdl = await tiktokdl(url);
+      if (!getdl[0]) {
+        return bot.editMessageText('Download failed, make sure your TikTok link is valid', { chat_id: chatId, message_id: load.message_id });
+      }
+      let res = [];
+      getdl.forEach(maru => {
+        res.push({ type: 'photo', media: maru.image })
+      })
+      let currentIndex = 0;
+      while (currentIndex < res.length) {
+        let mediaToSend = res.slice(currentIndex, currentIndex + 10);
+        currentIndex += 10;
+        if (mediaToSend.length > 0) {
+          await bot.sendMediaGroup(chatId, mediaToSend);
+        }
+      }
+      res.length = 0;
+      await bot.deleteMessage(chatId, load.message_id);
     } else if (getinfo.type === 'video') {
       let options = {
         caption: `Tiktok Information\nUsername: ${getinfo.author ? getinfo.author : '-'}\nTitle: ${getinfo.title ? getinfo.title : '-'}\n\nPlease select the following options`,

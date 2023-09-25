@@ -5,7 +5,9 @@ const util = require('util');
 
 async function pindl(url) {
   try {
-    const { data } = await axios.get(url);
+    const { data } = await axios.get(url, { headers: {
+				"user-agent": "Mozilla/5.0 (Linux; U; Android 12; in; SM-A015F Build/SP1A.210812.016.A015FXXS5CWB2) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/110.0.0.0 Mobile Safari/537.36"
+			}});
     const $ = cheerio.load(data);
     const scriptTag = $('script[data-test-id="video-snippet"]').html() || $('script[data-test-id="leaf-snippet"]').html();
     if (scriptTag) {

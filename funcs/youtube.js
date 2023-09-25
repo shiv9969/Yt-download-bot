@@ -47,8 +47,7 @@ async function getYoutube(bot, chatId, url) {
     }
   } catch (err) {
     await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
-    await bot.deleteMessage(chatId, load.message_id);
-    return bot.sendMessage(chatId, 'An error occurred, make sure your YouTube link is valid!');
+    return bot.editMessageText('An error occurred, make sure your YouTube link is valid!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 
@@ -71,8 +70,7 @@ async function getYoutubeVideo(bot, chatId, id, ind) {
     await fs.unlinkSync('content/'+fname);
   } catch (err) {
     await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Id: ${id}\n\n${util.format(err)}`.trim());
-    await bot.deleteMessage(chatId, load.message_id);
-    return bot.sendMessage(chatId, 'An error occurred, failed to download video!');
+    return bot.editMessageText('An error occurred, failed to download video!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 
@@ -95,8 +93,7 @@ async function getYoutubeAudio(bot, chatId, id, ind) {
     await fs.unlinkSync('content/'+fname);
   } catch (err) {
     await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Id: ${id}\n\n${util.format(err)}`.trim());
-    await bot.deleteMessage(chatId, load.message_id);
-    return bot.sendMessage(chatId, 'An error occurred, failed to download audio!');
+    return bot.editMessageText('An error occurred, failed to download audio!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 

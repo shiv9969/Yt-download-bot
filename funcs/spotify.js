@@ -52,8 +52,7 @@ async function getPlaylistSpotify(bot, chatId, url) {
     await bot.deleteMessage(chatId, load.message_id);
   } catch (err) {
     await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
-    await bot.deleteMessage(chatId, load.message_id);
-    return bot.sendMessage(chatId, 'Error getting playlist data!')
+    return bot.editMessageText('Error getting playlist data!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 
@@ -76,8 +75,7 @@ async function getAlbumsSpotify(bot, chatId, url) {
     await bot.deleteMessage(chatId, load.message_id);
   } catch (err) {
     await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
-    await bot.deleteMessage(chatId, load.message_id);
-    return bot.sendMessage(chatId, 'Error getting playlist data!')
+    return bot.editMessageText('Error getting playlist data!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 
@@ -88,7 +86,6 @@ async function getSpotifySong(bot, chatId, url) {
       let pars = await parse(url);
       let getdata = await spotifyScraper(pars.id, 'download');
       let fname = `${filterAlphanumericWithDash(getdata.metadata.title)}-${filterAlphanumericWithDash(getdata.metadata.artists)}_${chatId}.mp3`
-      await console.log(getdata)
       if (getdata.success) {
         await bot.editMessageText(`Downloading song ${getdata.metadata.title} - ${getdata.metadata.artists}, please wait...`, { chat_id: chatId, message_id: load.message_id })
         let buff = await getBuffer(getdata.link);
@@ -101,7 +98,6 @@ async function getSpotifySong(bot, chatId, url) {
       }
     } else {
       let getdata = await spotifyScraper(url, 'download');
-      await console.log(getdata)
       let fname = `${filterAlphanumericWithDash(getdata.metadata.title)}-${filterAlphanumericWithDash(getdata.metadata.artists)}_${chatId}.mp3`
       if (getdata.success) {
         await bot.editMessageText(`Downloading song ${getdata.metadata.title} - ${getdata.metadata.artists}, please wait...`, { chat_id: chatId, message_id: load.message_id })
@@ -116,8 +112,7 @@ async function getSpotifySong(bot, chatId, url) {
     }
   } catch (err) {
     await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
-    await bot.deleteMessage(chatId, load.message_id);
-    await bot.sendMessage(chatId, 'Failed to download song!');
+    return bot.editMessageText('Failed to download song!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 

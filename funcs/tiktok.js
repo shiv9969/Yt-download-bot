@@ -85,7 +85,6 @@ function tiktokdl(URL) {
               let urlimg = ch(mil).find('img').attr('src');
               result.push({ image: urlimg })
             })
-            console.log(result)
             resolve(result)
           } else if (ch('body > div.welcome.section > div > div > div.col.s12.l4 > audio > source').attr('src')) {
             const result = {
@@ -121,8 +120,7 @@ async function getTiktokInfo(bot, chatId, url) {
     let getinfo = await ttembed(url);
     if (getinfo.type === 'music') {
       let getdl = await tiktokdl(url);
-      await bot.deleteMessage(chatId, load.message_id);
-      let load2 = await bot.sendMessage(chatId, 'Downloading tiktok music...');
+      await bot.editMessageText('Downloading tiktok music...!', { chat_id: chatId, message_id: load.message_id })
       let title = getinfo.title;
       let getbuff = await getBuffer(getdl.audio || getdl.audio2);
       await fs.writeFileSync(`content/${title}-${chatId}.mp3`, getbuff);
@@ -159,15 +157,14 @@ async function getTiktokInfo(bot, chatId, url) {
           ]
         })
       };
-      console.log(options);
       await bot.sendPhoto(chatId, getinfo.thumb, options)
       await bot.deleteMessage(chatId, load.message_id)
     } else {
-      return bot.sendMessage(chatId, 'An error occurs, make sure your tiktok link is valid and not private!')
+      return bot.editMessageText('An error occurs, make sure your tiktok link is valid and not private!', { chat_id: chatId, message_id: load.message_id })
     }
   } catch (err) {
     await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
-    return bot.sendMessage(chatId, 'An error occurs, make sure your tiktok link is valid and not private!')
+    return bot.editMessageText('An error occurs, make sure your tiktok link is valid and not private!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 
@@ -175,7 +172,6 @@ async function tiktokVideo(bot, chatId, url) {
   load = await bot.sendMessage(chatId, 'Downloading video...');
   try {
     let get = await tiktokdl('https://www.tiktok.com/@' + url);
-    console.log(get)
     let fname = `tiktok_video_${get.username}-${chatId}.mp4`;
     let getbuff = await getBuffer(get.video);
     await fs.writeFileSync(`content/${fname}`, getbuff);
@@ -184,7 +180,7 @@ async function tiktokVideo(bot, chatId, url) {
     await fs.unlinkSync('content/'+fname)
   } catch (err) {
     await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
-    return bot.sendMessage(chatId, 'An error occurred!')
+    return bot.editMessageText('An error occurred!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 
@@ -200,7 +196,7 @@ async function tiktokAudio(bot, chatId, url) {
     await fs.unlinkSync('content/'+fname)
   } catch (err) {
     await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
-    return bot.sendMessage(chatId, 'An error occurred!')
+    return bot.editMessageText('An error occurred!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 
@@ -217,7 +213,7 @@ async function tiktokSound(bot, chatId, url) {
     await fs.unlinkSync('content/'+fname)
   } catch (err) {
     await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
-    return bot.sendMessage(chatId, 'An error occurred!')
+    return bot.editMessageText('An error occurred!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 

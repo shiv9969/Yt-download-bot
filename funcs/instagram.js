@@ -47,8 +47,7 @@ async function downloadInstagram(bot, chatId, url) {
   try {
     let get = await igdl(url);
     if (!get.data[0]) {
-      await bot.deleteMessage(chatId, load.message_id)
-      return bot.sendMessage(chatId, 'Failed to get data, make sure your Instagram link is valid!')
+      return bot.editMessageText('Failed to get data, make sure your Instagram link is valid!', { chat_id: chatId, message_id: load.message_id })
     } else if (get.data[0]) {
       let res = [];
       let res2 = [];
@@ -88,8 +87,7 @@ async function downloadInstagram(bot, chatId, url) {
     }
   } catch (err) {
     await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
-    await bot.deleteMessage(chatId, load.message_id)
-    return bot.sendMessage(chatId, 'An error occurred, make sure your Instagram link is valid!')
+    return bot.editMessageText('An error occurred, make sure your Instagram link is valid!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 

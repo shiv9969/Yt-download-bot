@@ -1,36 +1,33 @@
+require('dotenv').config();
 const axios = require('axios');
 const cheerio = require('cheerio');
 const util = require('util');
 
 async function pindl(url) {
   try {
-    const { data } = await axios.get(
-      `https://www.savepin.app/download.php?url=${url}&lang=en&type=redirect`
-    );
+    const { data } = await axios.get(url);
     const $ = cheerio.load(data);
-    const result = decodeURIComponent(
-        $(
-          ".download-link > div:nth-child(2) > div > table > tbody >  tr:nth-child(1) > td:nth-child(3) > a"
-        )
-          .attr("href")
-          .split("url=")[1]
-      )
-    //console.log(result);
-    return result;
+    const scriptTag = $('script[data-test-id="video-snippet"]').html() || $('script[data-test-id="leaf-snippet"]').html();
+    if (scriptTag) {
+        const jsonData = JSON.parse(scriptTag);
+        const resultt = jsonData.contentUrl || jsonData.image;
+        return resultt
+    } else {
+      result = "Error: Invalid URL!"
+      return result;
+    }
   } catch (err) {
     result = "Error: Invalid URL!"
-    //console.log(result);
     return result;
   }
 }
 
 async function pinterest(bot, chatId, url) {
-  let load = await bot.sendMessage(chatId, 'Loading, please wait.')
+  let load = await bot.sendMessage(chatId, 'Loading.')
   try {
     let get = await pindl(url);
     if (!get) {
-      await bot.deleteMessage(chatId, load.message_id);
-      return bot.sendMessage(chatId, 'Failed to download media, make sure your link is valid!')
+      return bot.editMessageText('Failed to get data, make sure your Pinterest link is valid!', { chat_id: chatId, message_id: load.message_id })
     } else {
       if (get.endsWith('.mp4')) {
         await bot.sendVideo(chatId, get)
@@ -41,9 +38,8 @@ async function pinterest(bot, chatId, url) {
       }
     }
   } catch (err) {
-    await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
-    await bot.deleteMessage(chatId, load.message_id);
-    return bot.sendMessage(chatId, 'Failed to download media, make sure your link is valid!')
+    await bot.sendMessage(String(process.env.DEV_ID), `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${err}`.trim());
+    return bot.editMessageText('Failed to download media, make sure your link is valid!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 

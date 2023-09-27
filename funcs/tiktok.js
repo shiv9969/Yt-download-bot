@@ -125,7 +125,7 @@ async function getTiktokInfo(bot, chatId, url) {
       let getbuff = await getBuffer(getdl.audio || getdl.audio2);
       await fs.writeFileSync(`content/${title}-${chatId}.mp3`, getbuff);
       await bot.sendAudio(chatId, `content/${title}-${chatId}.mp3`, { caption: 'Downloaded audio: ' + title + ' by @Krxuvv', filename: `${title}-${chatId}.mp3`, contentType: 'audio/mp3' })
-      await bot.deleteMessage(chatId, load2.message_id);
+      await bot.deleteMessage(chatId, load.message_id);
       await fs.unlinkSync(`content/${title}-${chatId}.mp3`)
     } else if (getinfo.type === 'image') {
       let getdl = await tiktokdl(url);

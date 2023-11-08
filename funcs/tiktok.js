@@ -130,26 +130,13 @@ async function getTiktokInfo(bot, chatId, url, userName) {
       await fs.unlinkSync(`content/${title}-${chatId}.mp3`)
     } else if (getinfo.type === 'image') {
       let getdl = await tiktokdl(url);
-      await console.log(getdl)
       if (!getdl[0]) {
         return bot.editMessageText('Download failed, make sure your TikTok link is valid', { chat_id: chatId, message_id: load.message_id });
       }
-      let res = [];
       getdl.forEach(async maru => {
-        let acu = await getBuffer(maru.image);
-        let fname = getRandom('.jpg');
-        fs.writeFileSync('content/' + fname, acu)
-        res.push({ type: 'photo', media: 'content/' + fname })
+        let buff = await getBuffer(maru.image)
+        await bot.sendPhoto(chatId, buff)
       })
-      let currentIndex = 0;
-      while (currentIndex < res.length) {
-        let mediaToSend = res.slice(currentIndex, currentIndex + 8);
-        currentIndex += 8;
-        if (mediaToSend.length > 0) {
-          await bot.sendMediaGroup(chatId, mediaToSend, { caption: `Bot by @Krxuvv` });
-        }
-      }
-      res.length = 0;
       await bot.deleteMessage(chatId, load.message_id);
     } else if (getinfo.type === 'video') {
       let options = {

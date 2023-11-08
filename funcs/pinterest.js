@@ -24,7 +24,23 @@ async function pindl(url) {
   }
 }
 
-async function pinterest(bot, chatId, url) {
+async function pinSearch(bot, chatId, query, userName) {
+  if (!query) return bot.sendMessage(chatId, '[Indonesia]\nGambar apa yang mau kamu cari di pinterest? contoh\n/pin anime\n\n[English]\nWhat images are you looking for on Pinterest? example\n/pin anime');
+  let load = await bot.sendMessage(chatId, 'Loading, please wait');
+  try {
+    let get = await axios.get(`https://www.pinterest.com/resource/BaseSearchResource/get/?source_url=/search/pins/?q=${query}&data={"options":{"isPrefetch":false,"query":"${query}","scope":"pins","no_fetch_context_on_resource":false},"context":{}}`)
+    let json = await get.data;
+		let data = json.resource_response.data.results;
+		if (!data.length) return bot.editMessageText(`Query "${query}" not found!`, { chat_id: chatId, message_id: load.message_id });
+		await bot.sendPhoto(chatId, data[~~(Math.random() * (data.length))].images.orig.url, { caption: `Bot by @Krxuvv` });
+		return bot.deleteMessage(chatId, load.message_id);
+  } catch (err) {
+    await bot.sendMessage(String(process.env.DEV_ID), `[ ERROR MESSAGE ]\n\n• Username: @${userName}\n• File: funcs/pinterest.js\n• Function: pinSearch()\n• Query: ${query}\n\n${err}`.trim());
+    return bot.editMessageText('An error occurred!', { chat_id: chatId, message_id: load.message_id }) 
+  }
+}
+
+async function pinterest(bot, chatId, url, userName) {
   let load = await bot.sendMessage(chatId, 'Loading.')
   try {
     let get = await pindl(url);
@@ -32,19 +48,20 @@ async function pinterest(bot, chatId, url) {
       return bot.editMessageText('Failed to get data, make sure your Pinterest link is valid!', { chat_id: chatId, message_id: load.message_id })
     } else {
       if (get.endsWith('.mp4')) {
-        await bot.sendVideo(chatId, get)
+        await bot.sendVideo(chatId, get, { caption: `Bot by @Krxuvv` })
         return bot.deleteMessage(chatId, load.message_id);
       } else {
-        await bot.sendPhoto(chatId, get)
+        await bot.sendPhoto(chatId, get, { caption: `Bot by @Krxuvv` })
         return bot.deleteMessage(chatId, load.message_id);
       }
     }
   } catch (err) {
-    await bot.sendMessage(String(process.env.DEV_ID), `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${err}`.trim());
+    await bot.sendMessage(String(process.env.DEV_ID), `[ ERROR MESSAGE ]\n\n• Username: @${userName}\n• File: funcs/pinterest.js\n• Function: pinterest()\n• Url: ${url}\n\n${err}`.trim());
     return bot.editMessageText('Failed to download media, make sure your link is valid!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 
 module.exports = {
-  pinterest
+  pinterest,
+  pinSearch
 }

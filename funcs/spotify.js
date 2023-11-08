@@ -1,3 +1,4 @@
+require('dotenv').config()
 const axios = require('axios');
 const { parse } = require('spotify-uri');
 const util = require('util');
@@ -33,7 +34,7 @@ async function spotifyScraper(id, endpoint) {
   }
 }
 
-async function getPlaylistSpotify(bot, chatId, url) {
+async function getPlaylistSpotify(bot, chatId, url, userName) {
   let pars = await parse(url);
   let load = await bot.sendMessage(chatId, 'Loading, please wait.')
   try {
@@ -51,12 +52,12 @@ async function getPlaylistSpotify(bot, chatId, url) {
     await bot.sendPhoto(chatId, 'https://telegra.ph/file/a41e47f544ed99dd33783.jpg', options);
     await bot.deleteMessage(chatId, load.message_id);
   } catch (err) {
-    await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
+    await bot.sendMessage(String(process.env.DEV_ID), `[ ERROR MESSAGE ]\n\n• Username: @${userName}\n• File: funcs/spotify.js\n• Function: getPlaylistSpotify()\n• Url: ${url}\n\n${err}`.trim());
     return bot.editMessageText('Error getting playlist data!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 
-async function getAlbumsSpotify(bot, chatId, url) {
+async function getAlbumsSpotify(bot, chatId, url, userName) {
   let pars = await parse(url);
   let load = await bot.sendMessage(chatId, 'Loading, please wait.')
   try {
@@ -74,12 +75,12 @@ async function getAlbumsSpotify(bot, chatId, url) {
     await bot.sendPhoto(chatId, 'https://telegra.ph/file/a41e47f544ed99dd33783.jpg', options);
     await bot.deleteMessage(chatId, load.message_id);
   } catch (err) {
-    await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
+    await bot.sendMessage(String(process.env.DEV_ID), `[ ERROR MESSAGE ]\n\n• Username: @${userName}\n• File: funcs/spotify.js\n• Function: getAlbumsSpotify()\n• Url: ${url}\n\n${err}`.trim());
     return bot.editMessageText('Error getting playlist data!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 
-async function getSpotifySong(bot, chatId, url) {
+async function getSpotifySong(bot, chatId, url, userName) {
   let load = await bot.sendMessage(chatId, 'Loading, please wait.')
   try {
     if (url.includes('spotify.com')) {
@@ -111,7 +112,7 @@ async function getSpotifySong(bot, chatId, url) {
       }
     }
   } catch (err) {
-    await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
+    await bot.sendMessage(String(process.env.DEV_ID), `[ ERROR MESSAGE ]\n\n• Username: @${userName}\n• File: funcs/spotify.js\n• Function: getSpotifySong()\n• Url: ${url}\n\n${err}`.trim());
     return bot.editMessageText('Failed to download song!', { chat_id: chatId, message_id: load.message_id })
   }
 }

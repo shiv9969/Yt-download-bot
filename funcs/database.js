@@ -19,7 +19,10 @@ function addUserDb(userid, databaseName) {
     db[userid] = {
       fbnormal: '',
       fbhd: '',
-      fbmp3: ''
+      fbmp3: '',
+      twhd: '',
+      twsd: '',
+      twaud: ''
     };
     writeDb(db, databaseName);
   } else {

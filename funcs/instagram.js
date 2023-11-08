@@ -1,70 +1,49 @@
+require('dotenv').config()
 const axios = require('axios');
 const cheerio = require('cheerio');
 const util = require('util');
 const fs = require('fs');
+const { getBuffer, getRandom } = require('./functions')
 
 async function igdl(url) {
   try {
-    const resp = await axios.post(
-      "https://saveig.app/api/ajaxSearch",
-      new URLSearchParams({ q: url, t: "media", lang: "id" }),
-      {
-        headers: {
-          accept: "*/*",
-          "user-agent": "PostmanRuntime/7.32.2",
-        },
-      }
-    );
-    let result = { data: [] };
-    const $ = cheerio.load(resp.data.data);
-    $(".download-box > li > .download-items").each(function () {
-      $(this)
-        .find(".photo-option > select > option")
-        .each(function () {
-          let resolution = $(this).text();
-          let url = $(this).attr("value");
-          if (/1080/gi.test(resolution)) result.data.push(url);
-        });
-      $(this)
-        .find("div:nth-child(2)")
-        .each(function () {
-          let url2 = $(this).find("a").attr("href");
-          if (!url2) return;
-          if (!/\.webp/gi.test(url2)) {
-            result.data.push(url2);
-          }
-        });
-    });
-    return result;
-  } catch {
-    result = "Couldn't fetch data of url"
-    return result;
+    let { data } = await axios.get(`https://krxuv-api.vercel.app/api/instagram?apikey=Krxuvonly&url=${url}`);
+    return data.results
+  } catch (err) {
+    return err
   }
 }
 
-async function downloadInstagram(bot, chatId, url) {
+async function downloadInstagram(bot, chatId, url, userName) {
   let load = await bot.sendMessage(chatId, 'Loading, please wait.')
   try {
     let get = await igdl(url);
-    if (!get.data[0]) {
+    if (!get[0]) {
       return bot.editMessageText('Failed to get data, make sure your Instagram link is valid!', { chat_id: chatId, message_id: load.message_id })
-    } else if (get.data[0]) {
+    } else if (get[0]) {
       let res = [];
       let res2 = [];
-      if (get.data.length == 1) {
-        if (get.data[0].includes('.jpg')) {
+      if (get.length == 1) {
+        if (get[0].type == 'Photo') {
           await bot.deleteMessage(chatId, load.message_id)
-          return bot.sendPhoto(chatId, get.data[0])
+          return bot.sendPhoto(chatId, get[0].thumbnail, { caption: `Bot by @Krxuvv` })
         } else {
-          await bot.deleteMessage(chatId, load.message_id)
-          await bot.sendVideo(chatId, get.data[0])
+          try {
+            await bot.sendVideo(chatId, get[0].url, { caption: `Bot by @Krxuvv` })
+          } catch (err) {
+            let buff = await getBuffer(get[0].url);
+            await fs.writeFileSync('content/vid-ig-single-' + chatId + '.mp4', buff)
+            await bot.deleteMessage(chatId, load.message_id)
+            await bot.sendVideo(chatId, 'content/vid-ig-single-' + chatId + '.mp4', { caption: `Bot by @Krxuvv` })
+            await fs.unlinkSync('content/vid-ig-single-' + chatId + '.mp4')
+          }
         }
       } else {
-        get.data.forEach(maru => {
-          if (maru.includes('.jpg') || maru.includes('-jpg')) {
-            res.push({ type: 'photo', media: maru })
+        get.forEach(maru => {
+          if (maru.type === 'Photo') {
+            res.push({ type: 'photo', media: maru.thumbnail })
           } else {
-            res2.push({ type: 'video', media: maru })
+            res2.push({ type: 'video', media: maru.url })
           }
         })
         let currentIndex = 0;
@@ -73,20 +52,24 @@ async function downloadInstagram(bot, chatId, url) {
           currentIndex += 10;
 
           if (mediaToSend.length > 0) {
-            await bot.sendMediaGroup(chatId, mediaToSend);
+            await bot.sendMediaGroup(chatId, mediaToSend, { caption: `Bot by @Krxuvv` });
           }
         }
 
         res.length = 0;
         res2.map(async (mi) => {
-          await bot.sendVideo(chatId, mi.media)
+          let nfile = await getRandom('.mp4')
+          let buff = await getBuffer(mi.media);
+          await fs.writeFileSync('content/' + nfile, buff)
+          await bot.sendVideo(chatId, 'content/' + nfile, { caption: `Bot by @Krxuvv` })
+          await fs.unlinkSync('content/' + nfile)
         })
 
         await bot.deleteMessage(chatId, load.message_id)
       }
     }
   } catch (err) {
-    await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
+    await bot.sendMessage(String(process.env.DEV_ID), `[ ERROR MESSAGE ]\n\n• Username: @${userName}\n• File: funcs/instagram.js\n• Function: downloadInstagram()\n• Url: ${url}\n\n${err}`.trim());
     return bot.editMessageText('An error occurred, make sure your Instagram link is valid!', { chat_id: chatId, message_id: load.message_id })
   }
 }

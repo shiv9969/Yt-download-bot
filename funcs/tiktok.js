@@ -1,8 +1,9 @@
+require('dotenv').config()
 const axios = require('axios');
 const cheerio = require('cheerio');
 const fs = require('fs');
 const util = require('util');
-const { getBuffer, filterAlphanumericWithDash } = require('./functions');
+const { getBuffer, filterAlphanumericWithDash, getRandom } = require('./functions');
 
 async function ttembed(inputurl) {
   let url = inputurl;
@@ -114,9 +115,9 @@ function tiktokdl(URL) {
 }
 
 
-async function getTiktokInfo(bot, chatId, url) {
+async function getTiktokInfo(bot, chatId, url, userName) {
+  let load = await bot.sendMessage(chatId, `Loading, please wait.`);
   try {
-    let load = await bot.sendMessage(chatId, `Loading, please wait.`);
     let getinfo = await ttembed(url);
     if (getinfo.type === 'music') {
       let getdl = await tiktokdl(url);
@@ -129,19 +130,23 @@ async function getTiktokInfo(bot, chatId, url) {
       await fs.unlinkSync(`content/${title}-${chatId}.mp3`)
     } else if (getinfo.type === 'image') {
       let getdl = await tiktokdl(url);
+      await console.log(getdl)
       if (!getdl[0]) {
         return bot.editMessageText('Download failed, make sure your TikTok link is valid', { chat_id: chatId, message_id: load.message_id });
       }
       let res = [];
-      getdl.forEach(maru => {
-        res.push({ type: 'photo', media: maru.image })
+      getdl.forEach(async maru => {
+        let acu = await getBuffer(maru.image);
+        let fname = getRandom('.jpg');
+        fs.writeFileSync('content/' + fname, acu)
+        res.push({ type: 'photo', media: 'content/' + fname })
       })
       let currentIndex = 0;
       while (currentIndex < res.length) {
-        let mediaToSend = res.slice(currentIndex, currentIndex + 10);
-        currentIndex += 10;
+        let mediaToSend = res.slice(currentIndex, currentIndex + 8);
+        currentIndex += 8;
         if (mediaToSend.length > 0) {
-          await bot.sendMediaGroup(chatId, mediaToSend);
+          await bot.sendMediaGroup(chatId, mediaToSend, { caption: `Bot by @Krxuvv` });
         }
       }
       res.length = 0;
@@ -157,50 +162,51 @@ async function getTiktokInfo(bot, chatId, url) {
           ]
         })
       };
-      await bot.sendPhoto(chatId, getinfo.thumb, options)
+      await fs.writeFileSync(`content/tt-thumb-${chatId}.jpg`, await getBuffer(getinfo.thumb));
+      await bot.sendPhoto(chatId, `content/tt-thumb-${chatId}.jpg`, options)
       await bot.deleteMessage(chatId, load.message_id)
     } else {
       return bot.editMessageText('An error occurs, make sure your tiktok link is valid and not private!', { chat_id: chatId, message_id: load.message_id })
     }
   } catch (err) {
-    await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
+    await bot.sendMessage(String(process.env.DEV_ID), `[ ERROR MESSAGE ]\n\n• Username: @${userName}\n• File: funcs/tiktok.js\n• Function: getTiktokInfo()\n• Url: ${url}\n\n${err}`.trim());
     return bot.editMessageText('An error occurs, make sure your tiktok link is valid and not private!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 
-async function tiktokVideo(bot, chatId, url) {
+async function tiktokVideo(bot, chatId, url, userName) {
   load = await bot.sendMessage(chatId, 'Downloading video...');
   try {
     let get = await tiktokdl('https://www.tiktok.com/@' + url);
     let fname = `tiktok_video_${get.username}-${chatId}.mp4`;
     let getbuff = await getBuffer(get.video);
     await fs.writeFileSync(`content/${fname}`, getbuff);
-    await bot.sendVideo(chatId, `content/${fname}`, { filename: fname, contentType: 'video/mp4' });
+    await bot.sendVideo(chatId, `content/${fname}`, { filename: fname, contentType: 'video/mp4', caption: `Bot by @Krxuvv` });
     await bot.deleteMessage(chatId, load.message_id);
     await fs.unlinkSync('content/'+fname)
   } catch (err) {
-    await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
+    await bot.sendMessage(String(process.env.DEV_ID), `[ ERROR MESSAGE ]\n\n• Username: @${userName}\n• File: funcs/tiktok.js\n• Function: tiktokVideo()\n• Url: ${url}\n\n${err}`.trim());
     return bot.editMessageText('An error occurred!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 
-async function tiktokAudio(bot, chatId, url) {
+async function tiktokAudio(bot, chatId, url, userName) {
   load = await bot.sendMessage(chatId, 'Downloading audio...');
   try {
     let get = await tiktokdl('https://www.tiktok.com/@' + url);
     let fname = `tiktok_audio_${get.username}-${chatId}.mp3`;
     let getbuff = await getBuffer(get.audio || get.audio2);
     await fs.writeFileSync(`content/${fname}`, getbuff);
-    await bot.sendAudio(chatId, `content/${fname}`, { filename: fname, contentType: 'audio/mp3' });
+    await bot.sendAudio(chatId, `content/${fname}`, { filename: fname, contentType: 'audio/mp3', caption: `Bot by @Krxuvv` });
     await bot.deleteMessage(chatId, load.message_id);
     await fs.unlinkSync('content/'+fname)
   } catch (err) {
-    await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
+    await bot.sendMessage(String(process.env.DEV_ID), `[ ERROR MESSAGE ]\n\n• Username: @${userName}\n• File: funcs/tiktok.js\n• Function: tiktokAudio()\n• Url: ${url}\n\n${err}`.trim());
     return bot.editMessageText('An error occurred!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 
-async function tiktokSound(bot, chatId, url) {
+async function tiktokSound(bot, chatId, url, userName) {
   load = await bot.sendMessage(chatId, 'Downloading audio...');
   try {
     let get2 = await ttembed('https://www.tiktok.com/@' + url)
@@ -208,11 +214,11 @@ async function tiktokSound(bot, chatId, url) {
     let fname = `${filterAlphanumericWithDash(get2.soundtitle)}-${chatId}.mp3`;
     let getbuff = await getBuffer(get.audio || get.audio2);
     await fs.writeFileSync(`content/${fname}`, getbuff);
-    await bot.sendAudio(chatId, `content/${fname}`, { filename: fname, contentType: 'audio/mp3' });
+    await bot.sendAudio(chatId, `content/${fname}`, { filename: fname, contentType: 'audio/mp3', caption: `Bot by @Krxuvv` });
     await bot.deleteMessage(chatId, load.message_id);
     await fs.unlinkSync('content/'+fname)
   } catch (err) {
-    await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
+    await bot.sendMessage(String(process.env.DEV_ID), `[ ERROR MESSAGE ]\n\n• Username: @${userName}\n• File: funcs/tiktok.js\n• Function: tiktokSound()\n• Url: ${url}\n\n${err}`.trim());
     return bot.editMessageText('An error occurred!', { chat_id: chatId, message_id: load.message_id })
   }
 }

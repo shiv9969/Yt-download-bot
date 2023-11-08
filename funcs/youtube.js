@@ -1,3 +1,4 @@
+require('dotenv').config();
 const axios = require('axios');
 const fs = require('fs');
 const util = require('util');
@@ -5,7 +6,7 @@ const { htmlToText, getBuffer, filterAlphanumericWithDash } = require('./functio
 const { Y2MateClient } = require('y2mate-api');
 const client = new Y2MateClient();
 
-async function getYoutube(bot, chatId, url) {
+async function getYoutube(bot, chatId, url, userName) {
   let load = await bot.sendMessage(chatId, 'Loading, please wait.');
   let data = [];
   try {
@@ -46,12 +47,12 @@ async function getYoutube(bot, chatId, url) {
       await bot.deleteMessage(chatId, load.message_id);
     }
   } catch (err) {
-    await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Url: ${url}\n\n${util.format(err)}`.trim());
+    await bot.sendMessage(String(process.env.DEV_ID), `[ ERROR MESSAGE ]\n\n• Username: @${userName}\n• File: funcs/youtube.js\n• Function: getYoutube()\n• Url: ${url}\n\n${err}`.trim());
     return bot.editMessageText('An error occurred, make sure your YouTube link is valid!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 
-async function getYoutubeVideo(bot, chatId, id, ind) {
+async function getYoutubeVideo(bot, chatId, id, ind, userName) {
   let load = await bot.sendMessage(chatId, 'Loading, please wait.')
   try {
     let get = await client.getFromURL('https://www.youtube.com/'+id, 'vi');
@@ -69,12 +70,12 @@ async function getYoutubeVideo(bot, chatId, id, ind) {
     await bot.deleteMessage(chatId, load.message_id);
     await fs.unlinkSync('content/'+fname);
   } catch (err) {
-    await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Id: ${id}\n\n${util.format(err)}`.trim());
+    await bot.sendMessage(String(process.env.DEV_ID), `[ ERROR MESSAGE ]\n\n• Username: @${userName}\n• File: funcs/youtube.js\n• Function: getYoutubeVideo()\n• Url: https://www.youtube.com/${id}\n\n${err}`.trim());
     return bot.editMessageText('An error occurred, failed to download video!', { chat_id: chatId, message_id: load.message_id })
   }
 }
 
-async function getYoutubeAudio(bot, chatId, id, ind) {
+async function getYoutubeAudio(bot, chatId, id, ind, userName) {
   let load = await bot.sendMessage(chatId, 'Loading, please wait.')
   try {
     let get = await client.getFromURL('https://www.youtube.com/'+id, 'vi');
@@ -92,7 +93,7 @@ async function getYoutubeAudio(bot, chatId, id, ind) {
     await bot.deleteMessage(chatId, load.message_id);
     await fs.unlinkSync('content/'+fname);
   } catch (err) {
-    await bot.sendMessage(1798659423, `Error\n• ChatId: ${chatId}\n• Id: ${id}\n\n${util.format(err)}`.trim());
+    await bot.sendMessage(String(process.env.DEV_ID), `[ ERROR MESSAGE ]\n\n• Username: @${userName}\n• File: funcs/youtube.js\n• Function: getYoutubeAudio()\n• Url: https://www.youtube.com/${id}\n\n${err}`.trim());
     return bot.editMessageText('An error occurred, failed to download audio!', { chat_id: chatId, message_id: load.message_id })
   }
 }

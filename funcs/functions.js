@@ -1,6 +1,10 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
+async function getRandom(ext) {
+    return `${Math.floor(Math.random() * 10000)}${ext}`
+}
+
 async function getBuffer(url) {
   try {
     let data = await axios({
@@ -32,5 +36,6 @@ function htmlToText(html) {
 module.exports = {
   getBuffer,
   htmlToText,
-  filterAlphanumericWithDash
+  filterAlphanumericWithDash,
+  getRandom
 }

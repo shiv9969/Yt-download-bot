@@ -31,14 +31,67 @@ function twitter(link){
 	})
 }
 
+async function twitterdl2(url) {
+  try {
+    const result = { status: true, type: "", media: [] }
+    const { data } = await axios(`https://savetwitter.net/api/ajaxSearch`, {
+      method: "post",
+      data: { q: url, lang: "en" },
+      headers: {
+        accept: "*/*",
+        "user-agent": "PostmanRuntime/7.32.2",
+        "content-type": "application/x-www-form-urlencoded"
+      }
+    })
+    let $ = cheerio.load(data.data)
+    if ($("div.tw-video").length === 0) {
+      $("div.video-data > div > ul > li").each(function () {
+        result.type = "image"
+        result.media.push($(this).find("div > div:nth-child(2) > a").attr("href"))
+      })
+    } else {
+      $("div.tw-video").each(function () {
+        result.type = "video"
+        result.media.push({
+          quality: $(this).find(".tw-right > div > p:nth-child(1) > a").text().split("(")[1].split(")")[0],
+          url: $(this).find(".tw-right > div > p:nth-child(1) > a").attr("href")
+        })
+      })
+    }
+    return result
+  } catch (err) {
+    const result = {
+      status: false,
+      message: "Media not found!" + String(err)
+    }
+    console.log(result)
+    return result
+  }
+}
+
 async function getDataTwitter(bot, chatId, url, userName) {
   let surl = url.replace('https://twitter.com/', '');
   let load = await bot.sendMessage(chatId, 'Loading, please wait.');
   try {
     let getd = await twitter(url);
     if (!getd.HD && !getd.SD) {
-      await bot.deleteMessage(chatId, load.message_id);
-      return bot.editMessageText('Failed  to get video information, make sure the Twitter link is valid and not a photo!', { chat_id: chatId, message_id: load.message_id })
+      try {
+        let get2 = await twitterdl2(url);
+        if (get2.type == 'video') {
+          await bot.sendChatAction(chatId, 'upload_video');
+          await bot.sendVideo(chatId, get2.media[0].url, { caption: `Bot by @Krxuvv` })
+          return bot.deleteMessage(chatId, load.message_id);
+        } else if (get2.type == 'image') {
+          for (let i = 0;i < get2.media.length;i++) {
+            await bot.sendChatAction(chatId, 'upload_photo')
+            await bot.sendPhoto(chatId, get2.media[i])
+          }
+          return bot.deleteMessage(chatId, load.message_id);
+        }
+      } catch (err) {
+        await bot.deleteMessage(chatId, load.message_id);
+        return bot.editMessageText('Failed  to get video information, make sure the Twitter link is valid and not a photo!', { chat_id: chatId, message_id: load.message_id })
+      }
     } else if (getd.HD && getd.thumb) {
       let db = await readDb('./database.json');
       db[chatId] = {
@@ -57,6 +110,7 @@ async function getDataTwitter(bot, chatId, url, userName) {
           ]
         })
       };
+      await bot.sendChatAction(chatId, 'typing')
       await bot.sendPhoto(chatId, getd.thumb, options);
       await bot.deleteMessage(chatId, load.message_id);
     }
@@ -65,59 +119,6 @@ async function getDataTwitter(bot, chatId, url, userName) {
     return bot.editMessageText('An error occurred!', { chat_id: chatId, message_id: load.message_id })
   }
 }
-
-/*async function downloadTwitterHigh(bot, chatId, url, userName) {
-  let load = await bot.sendMessage(chatId, 'Downloading video...');
-  try {
-    let get = await twitter('https://twitter.com/' + url);
-    if (!get.HD) {
-      return bot.editMessageText('An error occurred!', { chat_id: chatId, message_id: load.message_id })
-    } else {
-      await bot.sendVideo(chatId, get.HD, { caption: get.desc ? get.desc : '' })
-      return bot.deleteMessage(chatId, load.message_id);
-    }
-  } catch (err) {
-    await bot.sendMessage(String(process.env.DEV_ID), `[ ERROR MESSAGE ]\n\n• Username: @${userName}\n• File: funcs/twitter.js\n• Function: downloadTwitterHigh()\n• Url: ${url}\n\n${err}`.trim());
-    return bot.editMessageText('Error sending video!', { chat_id: chatId, message_id: load.message_id })
-  }
-}
-
-async function downloadTwitterLow(bot, chatId, url, userName) {
-  let load = await bot.sendMessage(chatId, 'Downloading video...');
-  try {
-    let get = await twitter('https://twitter.com/' + url);
-    if (!get.SD) {
-      return bot.editMessageText('An error occurred!', { chat_id: chatId, message_id: load.message_id })
-    } else {
-      await bot.sendVideo(chatId, get.SD, { caption: get.desc ? get.desc : '' });
-      return bot.deleteMessage(chatId, load.message_id);
-    }
-  } catch (err) {
-    await bot.sendMessage(String(process.env.DEV_ID), `[ ERROR MESSAGE ]\n\n• Username: @${userName}\n• File: funcs/twitter.js\n• Function: downloadTwitterLow()\n• Url: ${url}\n\n${err}`.trim());
-    return bot.editMessageText('Error sending video!', { chat_id: chatId, message_id: load.message_id })
-  }
-}
-
-
-async function downloadTwitterAudio(bot, chatId, url, userName) {
-  let load = await bot.sendMessage(chatId, 'Downloading audio...');
-  try {
-    let get = await twitter('https://twitter.com/' + url);
-    if (!get.audio) {
-      return bot.editMessageText('An error occurred!', { chat_id: chatId, message_id: load.message_id })
-    } else {
-      let fname = 'Twitter_audio_'+chatId+'.mp3'
-      let buff = await getBuffer(get.audio);
-      await fs.writeFileSync('content/'+fname, buff);
-      await bot.sendAudio(chatId, 'content/'+fname, { contentType: 'audio/mp3', caption: `Bot by @Krxuvv` });
-      await fs.unlinkSync('content/'+fname)
-      return bot.deleteMessage(chatId, load.message_id);
-    }
-  } catch (err) {
-    await bot.sendMessage(String(process.env.DEV_ID), `[ ERROR MESSAGE ]\n\n• Username: @${userName}\n• File: funcs/twitter.js\n• Function: downloadTwitterAudio()\n• Url: ${url}\n\n${err}`.trim());
-    return bot.editMessageText('Error sending audio!', { chat_id: chatId, message_id: load.message_id })
-  }
-}*/
 
 
 async function downloadTwitterHigh(bot, chatId, userName) {

@@ -36,6 +36,6 @@
     "request-promise": "^4.2.6",
     "spotify-uri": "^4.0.0",
     "tesseract.js": "^5.0.2",
-    "y2mate-api": "^1.2.2"
+    "y2mate-api": "github:krxuv/y2mate-api"
   }
 }
